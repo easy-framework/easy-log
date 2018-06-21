@@ -1,0 +1,28 @@
+{
+    "name": "tigerb/easy-log",
+    "description": "Write log easily",
+    "authors": [
+        {
+            "name": "TIGERB",
+            "email": "tigerbcode@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Easy\\Log\\": "/src"
+        }
+    },
+    "keywords": [
+        "php-log",
+        "log"
+    ],
+    "homepage": "https://github.com/easy-framework",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "config": {
+        "preferred-install": "dist"
+    }
+}
