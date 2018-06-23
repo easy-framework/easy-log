@@ -1,5 +1,5 @@
 {
-    "name": "tigerb/easy-log",
+    "name": "easy-framework/easy-log",
     "description": "Write log easily",
     "authors": [
         {
@@ -12,7 +12,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Easy\\Log\\": "/src"
+            "Easy\\": "/src"
         }
     },
     "keywords": [
