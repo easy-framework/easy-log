@@ -7,7 +7,7 @@
  *                                                  *
  ****************************************************/
 
-namespace Easy\Log;
+namespace Easy;
 
 use Exception;
 
@@ -18,7 +18,8 @@ use Exception;
  * 
  * 使用说明：
  * Log::debug(...)　-> debug日志
- * Log::notice(...) -> 警告日志
+ * Log::notice(...) ->　提醒日志
+ * Log::warning(...) -> 警告日志
  * Log::error(...)  -> 错误日志　
  */
 class Log
@@ -39,15 +40,59 @@ class Log
 	 *
 	 * @var array
 	 */
-	private $methodSupport = ['debug', 'notice', 'error'];
+    private $methodSupport = [
+        'debug',
+        'notice',
+        'warning',
+        'error'
+    ];
+    
+    /**
+	 * class private variable change allow list
+	 *
+	 * @var array
+	 */
+	private $variablesAllow = [
+        'logPath',
+        'logFileSize',
+        'logFileName'
+    ];
 
 	/**
+	 * the log file name
+	 *
+	 * @var string
+	 */
+    private $logFileName = '';
+
+    /**
+	 * the final log name include the path
+	 *
+	 * @var string
+	 */
+    private $finalFileName = '';
+
+    /**
 	 * the log path
 	 *
 	 * @var string
 	 */
     private $logPath = '/tmp/easy';
-    
+
+    /**
+	 * the log file size
+	 *
+	 * @var int unit/M
+	 */
+    private $logFileSize = 512;
+
+    /**
+	 * log
+	 *
+	 * @var string
+	 */
+    private $log = '';
+
     /**
      * instance
      * 
@@ -64,7 +109,20 @@ class Log
     {
         register_shutdown_function([$this, 'write']);
     }
-  
+
+    /**
+     * set log path function
+     * 
+     * @return void
+     */
+    public function __set($name = '', $value = '')
+    {
+        if (! in_array($name, $this->variablesAllow)) {
+            throw new Exception('Operate is forbidden for this variable ' . $name, 401);    
+        }
+        $this->$name = $value;
+    }
+    
     /**
      * the magic function
      * clone is forbidden
@@ -73,7 +131,7 @@ class Log
      */
     public function __clone()
     {
-        throw new Exception('clone is forbidden', 401);
+        throw new Exception('Clone is forbidden', 401);
     }
   
     /**
@@ -128,9 +186,12 @@ class Log
 			case 'notice':
 				$rank = "\033[36m{$rank} \033[0m";
 			break;
-			case 'error':
-				$rank = "\033[31m{$rank}\033[0m";
-			break;
+			case 'warning':
+				$rank = "\033[33m{$rank}\033[0m";
+            break;
+            case 'error':
+                $rank = "\033[31m{$rank}\033[0m";
+            break;
 			
 			default:
 			
@@ -181,7 +242,29 @@ class Log
         foreach ($this->buffer as $v) {
             $msg .= $v . PHP_EOL; 
         }
-        error_log($msg, 3, $this->logPath . '.' . date('Y-m-d', time()) . '.log');
+
+        // check file path
+        if (! file_exists($this->logPath)) {
+            mkdir($this->logPath, 0777, true);
+        }
+        $this->finalFileName = $this->logPath . "{$this->logFileName}." . date('Y-m-d', time()) . '.log';
+
+        // check file size
+        if (file_exists($this->finalFileName)) {
+            $filesize = filesize(realpath($this->finalFileName));
+            if ($filesize >= $this->logFileSize*1024*1024) {
+                $this->finalFileName = $this->logPath . "{$this->logFileName}." . date('Y-m-d', time());
+                $this->finalFileName .= '.' . date('H-i-s', time()) . '.log';
+            }
+    
+        }
+            
+        // write
+        error_log(
+            $msg, 
+            3, 
+            $this->finalFileName
+        );
     }
 
     /**
